@@ -66,31 +66,48 @@ CREATE PROCEDURE registrar_participante(
 )
 
 BEGIN
+    DECLARE existe_registro INT DEFAULT 0;
     DECLARE limite INT DEFAULT 0;
     DECLARE registrados INT DEFAULT 0;
-    DECLARE actividad_llena VARCHAR (255) DEFAULT 'El bloque y actividad
-    seleccionados, ya no tienen lugares disponibles.';
+    DECLARE respuesta VARCHAR(255) DEFAULT 'OK';
 
     START TRANSACTION;
-        SELECT cupo INTO limite FROM actividades 
-            WHERE actividad_id = _actividad;
 
-        SELECT COUNT(*) INTO registrados FROM registros 
-            WHERE actividad = _actividad;
+        SELECT COUNT(*) INTO existe_registro FROM registros
+            WHERE email = _email;
 
-        IF registrados < limite THEN 
+        IF existe_registro = 1 THEN
 
-            INSERT INTO participantes (email, nombre, apellidos, nacimiento)
-                VALUES (_email, _nombre, _apellido, _nacimiento);
-
-            INSERT INTO registros (email, actividad, fecha)
-                VALUES (_email,_actividad, NOW());
+            SELECT 'Tu correo electronico ya ha sido registrado previamente, solo puedes registrarte una vez'
+            AS respuesta;
 
         ELSE
 
-            SELECT actividad_llena;
+            SELECT cupo INTO limite FROM actividades 
+                WHERE actividad_id = _actividad;
 
+            SELECT COUNT(*) INTO registrados FROM registros 
+                WHERE actividad = _actividad;
+
+            IF registrados < limite THEN 
+
+                INSERT INTO participantes (email, nombre, apellidos, nacimiento)
+                    VALUES (_email, _nombre, _apellido, _nacimiento);
+
+                INSERT INTO registros (email, actividad, fecha)
+                    VALUES (_email,_actividad, NOW());
+
+                SELECT respuesta;
+
+            ELSE
+
+                SELECT 'El bloque y actividad seleccionados, ya no tienen lugares diponibles.' 
+                AS respuesta;
+
+            END IF;
+        
         END IF;
+
     COMMIT;
 
 
@@ -118,6 +135,7 @@ BEGIN
         DELETE FROM registros
             WHERE email = _email;
 
+        SELECT respuesta;
     COMMIT;
 
 END $$
