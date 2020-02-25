@@ -97,3 +97,28 @@ BEGIN
 END $$
 
 DELIMITER ;
+
+
+
+DROP PROCEDURE IF EXISTS eliminar_participante;
+
+DELIMITER $$
+
+CREATE PROCEDURE eliminar_participante(
+    IN _email VARCHAR(50)
+)
+
+BEGIN
+
+    START TRANSACTION;
+
+        DELETE FROM participantes
+            WHERE email = _email;
+
+        DELETE FROM registros
+            WHERE email = _email;
+
+    COMMIT;
+
+END $$
+DELIMITER ;
